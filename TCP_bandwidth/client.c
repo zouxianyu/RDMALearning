@@ -12,8 +12,8 @@
 
 #define PORT 34567
 #define MAX_SIZE 0x100000
-#define WARMUP_REP 100
-#define TRANSMISSION_REP 10000
+#define WARMUP_REP 100 // cycle sufficient times to warm up
+#define TRANSMISSION_REP 10000 // a number much greater than 1, so we can ignore the reply
 
 ssize_t send_all(int sockfd, const void *buff, size_t nbytes, int flags)
 {
