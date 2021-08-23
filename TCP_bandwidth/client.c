@@ -13,7 +13,7 @@
 #define PORT 34567
 #define MAX_SIZE 0x100000
 #define WARMUP_REP 100
-#define TRANSMISSION_REP 1000
+#define TRANSMISSION_REP 100000
 
 ssize_t send_all(int sockfd, const void *buff, size_t nbytes, int flags)
 {
@@ -93,7 +93,7 @@ int main(int argc, char *argv[])
 
         // calculate
         double interval = (double)(end - start) / CLOCKS_PER_SEC;
-        double throughput = TRANSMISSION_REP * cur_size / interval; // byte per sec
+        double throughput = TRANSMISSION_REP / interval * cur_size; // byte per sec
         
         // print
         printf("%d\t", cur_size);

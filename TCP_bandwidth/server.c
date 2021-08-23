@@ -13,7 +13,7 @@
 #define PORT 34567
 #define MAX_SIZE 0x100000
 #define WARMUP_REP 100
-#define TRANSMISSION_REP 1000
+#define TRANSMISSION_REP 100000
 
 ssize_t send_all(int sockfd, const void *buff, size_t nbytes, int flags)
 {
