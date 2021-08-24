@@ -573,15 +573,6 @@ int pp_wait_completions(struct pingpong_context *ctx, int iters)
                 break;
 
             case PINGPONG_RECV_WRID:
-                // if (--ctx->routs <= 10) {
-                //     ctx->routs += pp_post_recv(ctx, ctx->rx_depth - ctx->routs);
-                //     if (ctx->routs < ctx->rx_depth) {
-                //         fprintf(stderr,
-                //                 "Couldn't post receive (%d)\n",
-                //                 ctx->routs);
-                //         return 1;
-                //     }
-                // }
                 ++rcnt;
                 break;
 
@@ -594,25 +585,6 @@ int pp_wait_completions(struct pingpong_context *ctx, int iters)
 
     }
     return 0;
-}
-
-static void usage(const char *argv0)
-{
-    printf("Usage:\n");
-    printf("  %s            start a server and wait for connection\n", argv0);
-    printf("  %s <host>     connect to server at <host>\n", argv0);
-    printf("\n");
-    printf("Options:\n");
-    printf("  -p, --port=<port>      listen on/connect to port <port> (default 18515)\n");
-    printf("  -d, --ib-dev=<dev>     use IB device <dev> (default first device found)\n");
-    printf("  -i, --ib-port=<port>   use port <port> of IB device (default 1)\n");
-    printf("  -s, --size=<size>      size of message to exchange (default 4096)\n");
-    printf("  -m, --mtu=<size>       path MTU (default 1024)\n");
-    printf("  -r, --rx-depth=<dep>   number of receives to post at a time (default 500)\n");
-    printf("  -n, --iters=<iters>    number of exchanges (default 1000)\n");
-    printf("  -l, --sl=<sl>          service level value\n");
-    printf("  -e, --events           sleep on CQ events (default poll)\n");
-    printf("  -g, --gid-idx=<gid index> local port gid index\n");
 }
 
 int main(int argc, char *argv[])
@@ -637,93 +609,6 @@ int main(int argc, char *argv[])
     char                     gid[33];
 
     srand48(getpid() * time(NULL));
-
-    while (1) {
-        int c;
-
-        static struct option long_options[] = {
-                { .name = "port",     .has_arg = 1, .val = 'p' },
-                { .name = "ib-dev",   .has_arg = 1, .val = 'd' },
-                { .name = "ib-port",  .has_arg = 1, .val = 'i' },
-                { .name = "size",     .has_arg = 1, .val = 's' },
-                { .name = "mtu",      .has_arg = 1, .val = 'm' },
-                { .name = "rx-depth", .has_arg = 1, .val = 'r' },
-                { .name = "iters",    .has_arg = 1, .val = 'n' },
-                { .name = "sl",       .has_arg = 1, .val = 'l' },
-                { .name = "events",   .has_arg = 0, .val = 'e' },
-                { .name = "gid-idx",  .has_arg = 1, .val = 'g' },
-                { 0 }
-        };
-
-        c = getopt_long(argc, argv, "p:d:i:s:m:r:n:l:eg:", long_options, NULL);
-        if (c == -1)
-            break;
-
-        switch (c) {
-        case 'p':
-            port = strtol(optarg, NULL, 0);
-            if (port < 0 || port > 65535) {
-                usage(argv[0]);
-                return 1;
-            }
-            break;
-
-        case 'd':
-            ib_devname = strdup(optarg);
-            break;
-
-        case 'i':
-            ib_port = strtol(optarg, NULL, 0);
-            if (ib_port < 0) {
-                usage(argv[0]);
-                return 1;
-            }
-            break;
-
-        case 's':
-            size = strtol(optarg, NULL, 0);
-            break;
-
-        case 'm':
-            mtu = pp_mtu_to_enum(strtol(optarg, NULL, 0));
-            if (mtu < 0) {
-                usage(argv[0]);
-                return 1;
-            }
-            break;
-
-        case 'r':
-            rx_depth = strtol(optarg, NULL, 0);
-            break;
-
-        case 'n':
-            iters = strtol(optarg, NULL, 0);
-            break;
-
-        case 'l':
-            sl = strtol(optarg, NULL, 0);
-            break;
-
-        case 'e':
-            ++use_event;
-            break;
-
-        case 'g':
-            gidx = strtol(optarg, NULL, 0);
-            break;
-
-        default:
-            usage(argv[0]);
-            return 1;
-        }
-    }
-
-    // if (optind == argc - 1)
-    //     servername = strdup(argv[optind]);
-    // else if (optind < argc) {
-    //     usage(argv[0]);
-    //     return 1;
-    // }
 
     if(argc == 2)
         servername = argv[1];
@@ -758,12 +643,6 @@ int main(int argc, char *argv[])
     if (!ctx)
         return 1;
 
-    // ctx->routs = pp_post_recv(ctx, ctx->rx_depth);
-    // if (ctx->routs < ctx->rx_depth) {
-    //     fprintf(stderr, "Couldn't post receive (%d)\n", ctx->routs);
-    //     return 1;
-    // }
-
     if (use_event)
         if (ibv_req_notify_cq(ctx->cq, 0)) {
             fprintf(stderr, "Couldn't request CQ notification\n");
@@ -793,8 +672,8 @@ int main(int argc, char *argv[])
     my_dest.qpn = ctx->qp->qp_num;
     my_dest.psn = lrand48() & 0xffffff;
     inet_ntop(AF_INET6, &my_dest.gid, gid, sizeof gid);
-    printf("  local address:  LID 0x%04x, QPN 0x%06x, PSN 0x%06x, GID %s\n",
-           my_dest.lid, my_dest.qpn, my_dest.psn, gid);
+    // printf("  local address:  LID 0x%04x, QPN 0x%06x, PSN 0x%06x, GID %s\n",
+    //        my_dest.lid, my_dest.qpn, my_dest.psn, gid);
 
 
     if (servername)
@@ -806,38 +685,16 @@ int main(int argc, char *argv[])
         return 1;
 
     inet_ntop(AF_INET6, &rem_dest->gid, gid, sizeof gid);
-    printf("  remote address: LID 0x%04x, QPN 0x%06x, PSN 0x%06x, GID %s\n",
-           rem_dest->lid, rem_dest->qpn, rem_dest->psn, gid);
+    // printf("  remote address: LID 0x%04x, QPN 0x%06x, PSN 0x%06x, GID %s\n",
+    //        rem_dest->lid, rem_dest->qpn, rem_dest->psn, gid);
 
     if (servername)
         if (pp_connect_ctx(ctx, ib_port, my_dest.psn, mtu, sl, rem_dest, gidx))
             return 1;
 
-
-
-
 /**/
 
     if (servername) {
-        // int i;
-        // for (i = 0; i < iters; i++) {
-        //     if ((i != 0) && (i % tx_depth == 0)) {
-        //         pp_wait_completions(ctx, tx_depth);
-        //     }
-        //     if (pp_post_send(ctx)) {
-        //         fprintf(stderr, "Client ouldn't post send\n");
-        //         return 1;
-        //     }
-        // }
-
-        // pp_post_send(ctx, 50);
-        // pp_post_recv(ctx, 1);
-        // pp_wait_completions(ctx, 51);
-
-
-        // pp_post_recv(ctx, 1);
-        // pp_wait_completions(ctx, 1);
-
         int cur_size;
         for(cur_size = 1; cur_size <= size; cur_size*= 2){
             
@@ -875,23 +732,7 @@ int main(int argc, char *argv[])
                 printf("%lf\t%s\n", throughput / (1024 * 1024 * 1024), "Gb/Sec");
             }
         }
-
-        printf("Client Done.\n");
     } else {
-        // if (pp_post_send(ctx)) {
-        //     fprintf(stderr, "Server couldn't post send\n");
-        //     return 1;
-        // }
-        // pp_wait_completions(ctx, iters);
-
-        // int i;
-        // for(i = 0; i < iters; i+= rx_depth) {
-        //     pp_post_recv(ctx, rx_depth);
-        //     pp_wait_completions(ctx, rx_depth);
-        // }
-        // pp_post_send(ctx, 1);
-        // pp_wait_completions(ctx, 1);
-
         int cur_size;
         for(cur_size = 1; cur_size <= size; cur_size*= 2){
             
@@ -911,8 +752,6 @@ int main(int argc, char *argv[])
                 pp_wait_completions(ctx, rx_depth);
             }
         }
-
-        printf("Server Done.\n");
     }
 
     ibv_free_device_list(dev_list);
