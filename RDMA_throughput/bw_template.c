@@ -816,7 +816,7 @@ int main(int argc, char *argv[])
 /**/
 
     if (servername) {
-        int i;
+        // int i;
         // for (i = 0; i < iters; i++) {
         //     if ((i != 0) && (i % tx_depth == 0)) {
         //         pp_wait_completions(ctx, tx_depth);
@@ -826,9 +826,20 @@ int main(int argc, char *argv[])
         //         return 1;
         //     }
         // }
-        pp_post_send(ctx, 50);
+
+        // pp_post_send(ctx, 50);
+        // pp_post_recv(ctx, 1);
+        // pp_wait_completions(ctx, 51);
+
+
+        int i;
+        for(i = 0; i < iters; i+= tx_depth) {
+            pp_post_send(ctx, tx_depth);
+            pp_wait_completions(ctx, tx_depth);
+        }
         pp_post_recv(ctx, 1);
-        pp_wait_completions(ctx, 51);
+        pp_wait_completions(ctx, 1);
+
         printf("Client Done.\n");
     } else {
         // if (pp_post_send(ctx)) {
@@ -836,11 +847,14 @@ int main(int argc, char *argv[])
         //     return 1;
         // }
         // pp_wait_completions(ctx, iters);
-        pp_post_recv(ctx, 50);
-        pp_wait_completions(ctx, 50);
+
+        int i;
+        for(i = 0; i < iters; i+= rx_depth) {
+            pp_post_recv(ctx, rx_depth);
+            pp_wait_completions(ctx, rx_depth);
+        }
         pp_post_send(ctx, 1);
         pp_wait_completions(ctx, 1);
-        printf("Server Done.\n");
     }
 
     ibv_free_device_list(dev_list);
