@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-g
+CFLAGS=
 
 all:clean client server 
 
