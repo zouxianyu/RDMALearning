@@ -1,3 +1,4 @@
+without send flag: IBV_SEND_INLINE
 ===========client============
 [rdmaworkshop11@thor001 RDMA_throughput]$ ./client 192.168.3.2
 1       3.712528        Mb/Sec
@@ -24,3 +25,36 @@
 
 ===========server============
 [rdmaworkshop11@thor002 RDMA_throughput]$ ./server
+
+
+
+
+
+with send flag: IBV_SEND_INLINE
+===========client============
+[rdmaworkshop11@thor008 RDMA_throughput]$ ./client 192.168.3.9
+1       5.008531        Mb/Sec
+2       9.522935        Mb/Sec
+4       23.742436       Mb/Sec
+8       43.040700       Mb/Sec
+16      76.206308       Mb/Sec
+32      216.482784      Mb/Sec
+64      308.398546      Mb/Sec
+128     736.650247      Mb/Sec
+256     1.352423        Gb/Sec
+512     2.099402        Gb/Sec
+1024    6.125863        Gb/Sec
+2048    8.020473        Gb/Sec
+4096    9.422728        Gb/Sec
+8192    10.090857       Gb/Sec
+16384   10.987902       Gb/Sec
+32768   11.011849       Gb/Sec
+65536   11.163021       Gb/Sec
+131072  11.335628       Gb/Sec
+262144  11.344782       Gb/Sec
+524288  11.365845       Gb/Sec
+1048576 11.367085       Gb/Sec
+
+===========server============
+[rdmaworkshop11@thor009 RDMA_throughput]$ ./server
+
