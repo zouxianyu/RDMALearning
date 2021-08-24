@@ -751,11 +751,11 @@ int main(int argc, char *argv[])
     if (!ctx)
         return 1;
 
-    ctx->routs = pp_post_recv(ctx, ctx->rx_depth);
-    if (ctx->routs < ctx->rx_depth) {
-        fprintf(stderr, "Couldn't post receive (%d)\n", ctx->routs);
-        return 1;
-    }
+    // ctx->routs = pp_post_recv(ctx, ctx->rx_depth);
+    // if (ctx->routs < ctx->rx_depth) {
+    //     fprintf(stderr, "Couldn't post receive (%d)\n", ctx->routs);
+    //     return 1;
+    // }
 
     if (use_event)
         if (ibv_req_notify_cq(ctx->cq, 0)) {
