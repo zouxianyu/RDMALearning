@@ -718,12 +718,15 @@ int main(int argc, char *argv[])
         }
     }
 
-    if (optind == argc - 1)
-        servername = strdup(argv[optind]);
-    else if (optind < argc) {
-        usage(argv[0]);
-        return 1;
-    }
+    // if (optind == argc - 1)
+    //     servername = strdup(argv[optind]);
+    // else if (optind < argc) {
+    //     usage(argv[0]);
+    //     return 1;
+    // }
+
+    if(argc == 2)
+        servername = argv[1];
 
     page_size = sysconf(_SC_PAGESIZE);
 
