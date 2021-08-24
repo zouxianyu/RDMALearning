@@ -519,7 +519,7 @@ static int pp_post_recv(struct pingpong_context *ctx, int n)
     return i;
 }
 
-static int pp_post_send(struct pingpong_context *ctx)
+static int pp_post_send(struct pingpong_context *ctx, int n)
 {
     struct ibv_sge list = {
             .addr	= (uint64_t)ctx->buf,
@@ -535,8 +535,12 @@ static int pp_post_send(struct pingpong_context *ctx)
             .send_flags = IBV_SEND_SIGNALED,
             .next       = NULL
     };
+    int i;
+    for (i = 0; i < n; ++i)
+        if (ibv_post_send(ctx->qp, &wr, &bad_wr))
+            break;
 
-    return ibv_post_send(ctx->qp, &wr, &bad_wr);
+    return i;
 }
 
 int pp_wait_completions(struct pingpong_context *ctx, int iters)
@@ -569,15 +573,15 @@ int pp_wait_completions(struct pingpong_context *ctx, int iters)
                 break;
 
             case PINGPONG_RECV_WRID:
-                if (--ctx->routs <= 10) {
-                    ctx->routs += pp_post_recv(ctx, ctx->rx_depth - ctx->routs);
-                    if (ctx->routs < ctx->rx_depth) {
-                        fprintf(stderr,
-                                "Couldn't post receive (%d)\n",
-                                ctx->routs);
-                        return 1;
-                    }
-                }
+                // if (--ctx->routs <= 10) {
+                //     ctx->routs += pp_post_recv(ctx, ctx->rx_depth - ctx->routs);
+                //     if (ctx->routs < ctx->rx_depth) {
+                //         fprintf(stderr,
+                //                 "Couldn't post receive (%d)\n",
+                //                 ctx->routs);
+                //         return 1;
+                //     }
+                // }
                 ++rcnt;
                 break;
 
@@ -751,11 +755,11 @@ int main(int argc, char *argv[])
     if (!ctx)
         return 1;
 
-    ctx->routs = pp_post_recv(ctx, ctx->rx_depth);
-    if (ctx->routs < ctx->rx_depth) {
-        fprintf(stderr, "Couldn't post receive (%d)\n", ctx->routs);
-        return 1;
-    }
+    // ctx->routs = pp_post_recv(ctx, ctx->rx_depth);
+    // if (ctx->routs < ctx->rx_depth) {
+    //     fprintf(stderr, "Couldn't post receive (%d)\n", ctx->routs);
+    //     return 1;
+    // }
 
     if (use_event)
         if (ibv_req_notify_cq(ctx->cq, 0)) {
@@ -813,22 +817,29 @@ int main(int argc, char *argv[])
 
     if (servername) {
         int i;
-        for (i = 0; i < iters; i++) {
-            if ((i != 0) && (i % tx_depth == 0)) {
-                pp_wait_completions(ctx, tx_depth);
-            }
-            if (pp_post_send(ctx)) {
-                fprintf(stderr, "Client ouldn't post send\n");
-                return 1;
-            }
-        }
+        // for (i = 0; i < iters; i++) {
+        //     if ((i != 0) && (i % tx_depth == 0)) {
+        //         pp_wait_completions(ctx, tx_depth);
+        //     }
+        //     if (pp_post_send(ctx)) {
+        //         fprintf(stderr, "Client ouldn't post send\n");
+        //         return 1;
+        //     }
+        // }
+        pp_post_send(ctx, 50);
+        pp_post_recv(ctx, 1);
+        pp_wait_completions(ctx, 51);
         printf("Client Done.\n");
     } else {
-        if (pp_post_send(ctx)) {
-            fprintf(stderr, "Server couldn't post send\n");
-            return 1;
-        }
-        pp_wait_completions(ctx, iters);
+        // if (pp_post_send(ctx)) {
+        //     fprintf(stderr, "Server couldn't post send\n");
+        //     return 1;
+        // }
+        // pp_wait_completions(ctx, iters);
+        pp_post_recv(ctx, 50);
+        pp_wait_completions(ctx, 50);
+        pp_post_send(ctx, 1);
+        pp_wait_completions(ctx, 1);
         printf("Server Done.\n");
     }
 
