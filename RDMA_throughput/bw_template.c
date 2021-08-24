@@ -620,7 +620,7 @@ int main(int argc, char *argv[])
     struct pingpong_dest    *rem_dest;
     char                    *ib_devname = NULL;
     char                    *servername;
-    int                      port = 12345;
+    int                      port = 60000;
     int                      ib_port = 1;
     enum ibv_mtu             mtu = IBV_MTU_2048;
     int                      rx_depth = 100;
@@ -751,11 +751,11 @@ int main(int argc, char *argv[])
     if (!ctx)
         return 1;
 
-    // ctx->routs = pp_post_recv(ctx, ctx->rx_depth);
-    // if (ctx->routs < ctx->rx_depth) {
-    //     fprintf(stderr, "Couldn't post receive (%d)\n", ctx->routs);
-    //     return 1;
-    // }
+    ctx->routs = pp_post_recv(ctx, ctx->rx_depth);
+    if (ctx->routs < ctx->rx_depth) {
+        fprintf(stderr, "Couldn't post receive (%d)\n", ctx->routs);
+        return 1;
+    }
 
     if (use_event)
         if (ibv_req_notify_cq(ctx->cq, 0)) {
@@ -812,37 +812,23 @@ int main(int argc, char *argv[])
 /**/
 
     if (servername) {
-        // int i;
-        // for (i = 0; i < iters; i++) {
-        //     if ((i != 0) && (i % tx_depth == 0)) {
-        //         pp_wait_completions(ctx, tx_depth);
-        //     }
-        //     if (pp_post_send(ctx)) {
-        //         fprintf(stderr, "Client ouldn't post send\n");
-        //         return 1;
-        //     }
-        // }
-
-        if (pp_post_send(ctx)) {
-            fprintf(stderr, "Client ouldn't post send\n");
-            return 1;
+        int i;
+        for (i = 0; i < iters; i++) {
+            if ((i != 0) && (i % tx_depth == 0)) {
+                pp_wait_completions(ctx, tx_depth);
+            }
+            if (pp_post_send(ctx)) {
+                fprintf(stderr, "Client ouldn't post send\n");
+                return 1;
+            }
         }
-        pp_wait_completions(ctx, 2);
-
         printf("Client Done.\n");
     } else {
-        // if (pp_post_send(ctx)) {
-        //     fprintf(stderr, "Server couldn't post send\n");
-        //     return 1;
-        // }
-        // pp_wait_completions(ctx, iters);
-        
-        pp_wait_completions(ctx, 1);
         if (pp_post_send(ctx)) {
             fprintf(stderr, "Server couldn't post send\n");
             return 1;
         }
-
+        pp_wait_completions(ctx, iters);
         printf("Server Done.\n");
     }
 
