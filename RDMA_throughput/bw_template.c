@@ -629,9 +629,9 @@ int main(int argc, char *argv[])
     enum ibv_mtu             mtu = IBV_MTU_2048;
     int                      rx_depth = 100;
     int                      tx_depth = 100;
-    int                      iters = 100000;
+    int                      iters = 1000;
     int                      use_event = 0;
-    int                      size = 0x1000;
+    int                      size = 1;
     int                      sl = 0;
     int                      gidx = -1;
     char                     gid[33];
@@ -832,46 +832,13 @@ int main(int argc, char *argv[])
         // pp_wait_completions(ctx, 51);
 
 
-        // pp_post_recv(ctx, 1);
-        // pp_wait_completions(ctx, 1);
-
-        int cur_size;
-        for(cur_size = 1; cur_size <= size; cur_size*= 2){
-            
-            // set current transmission size
-            ctx->size = cur_size;
-
-            int i;
-            // warm up the transmission
-            for(i = 0; i < tx_depth; i+= tx_depth) {
-                pp_post_send(ctx, tx_depth);
-                pp_wait_completions(ctx, tx_depth);
-            }
-
-            // start transmission
-            clock_t start = clock();
-            for(i = 0; i < iters; i+= tx_depth) {
-                pp_post_send(ctx, tx_depth);
-                pp_wait_completions(ctx, tx_depth);
-            }
-            clock_t end = clock();
-
-            // calculate
-            double interval = (double)(end - start) / CLOCKS_PER_SEC;
-            double throughput = iters / interval * cur_size; // byte per sec
-            
-            // print
-            printf("%d\t", cur_size);
-            if(throughput < 1024){
-                printf("%lf\t%s\n", throughput, "Byte/Sec");
-            }else if(throughput < 1024 * 1024){
-                printf("%lf\t%s\n", throughput / 1024, "Kb/Sec");
-            }else if(throughput < 1024 * 1024 * 1024){
-                printf("%lf\t%s\n", throughput / (1024 * 1024), "Mb/Sec");
-            }else{
-                printf("%lf\t%s\n", throughput / (1024 * 1024 * 1024), "Gb/Sec");
-            }
+        int i;
+        for(i = 0; i < iters; i+= tx_depth) {
+            pp_post_send(ctx, tx_depth);
+            pp_wait_completions(ctx, tx_depth);
         }
+        pp_post_recv(ctx, 1);
+        pp_wait_completions(ctx, 1);
 
         printf("Client Done.\n");
     } else {
@@ -881,35 +848,13 @@ int main(int argc, char *argv[])
         // }
         // pp_wait_completions(ctx, iters);
 
-        // int i;
-        // for(i = 0; i < iters; i+= rx_depth) {
-        //     pp_post_recv(ctx, rx_depth);
-        //     pp_wait_completions(ctx, rx_depth);
-        // }
-        // pp_post_send(ctx, 1);
-        // pp_wait_completions(ctx, 1);
-
-        int cur_size;
-        for(cur_size = 1; cur_size <= size; cur_size*= 2){
-            
-            // set current transmission size
-            ctx->size = cur_size;
-
-            int i;
-            // warm up the transmission
-            for(i = 0; i < rx_depth; i+= rx_depth) {
-                pp_post_recv(ctx, rx_depth);
-                pp_wait_completions(ctx, rx_depth);
-            }
-
-            // start transmission
-            for(i = 0; i < iters; i+= rx_depth) {
-                pp_post_recv(ctx, rx_depth);
-                pp_wait_completions(ctx, rx_depth);
-            }
+        int i;
+        for(i = 0; i < iters; i+= rx_depth) {
+            pp_post_recv(ctx, rx_depth);
+            pp_wait_completions(ctx, rx_depth);
         }
-
-        printf("Server Done.\n");
+        pp_post_send(ctx, 1);
+        pp_wait_completions(ctx, 1);
     }
 
     ibv_free_device_list(dev_list);
