@@ -812,23 +812,37 @@ int main(int argc, char *argv[])
 /**/
 
     if (servername) {
-        int i;
-        for (i = 0; i < iters; i++) {
-            if ((i != 0) && (i % tx_depth == 0)) {
-                pp_wait_completions(ctx, tx_depth);
-            }
-            if (pp_post_send(ctx)) {
-                fprintf(stderr, "Client ouldn't post send\n");
-                return 1;
-            }
+        // int i;
+        // for (i = 0; i < iters; i++) {
+        //     if ((i != 0) && (i % tx_depth == 0)) {
+        //         pp_wait_completions(ctx, tx_depth);
+        //     }
+        //     if (pp_post_send(ctx)) {
+        //         fprintf(stderr, "Client ouldn't post send\n");
+        //         return 1;
+        //     }
+        // }
+
+        if (pp_post_send(ctx)) {
+            fprintf(stderr, "Client ouldn't post send\n");
+            return 1;
         }
+        pp_wait_completions(ctx, 2);
+
         printf("Client Done.\n");
     } else {
+        // if (pp_post_send(ctx)) {
+        //     fprintf(stderr, "Server couldn't post send\n");
+        //     return 1;
+        // }
+        // pp_wait_completions(ctx, iters);
+        
+        pp_wait_completions(ctx, 1);
         if (pp_post_send(ctx)) {
             fprintf(stderr, "Server couldn't post send\n");
             return 1;
         }
-        pp_wait_completions(ctx, iters);
+
         printf("Server Done.\n");
     }
 
