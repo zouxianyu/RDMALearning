@@ -532,7 +532,7 @@ static int pp_post_send(struct pingpong_context *ctx, int n)
             .sg_list    = &list,
             .num_sge    = 1,
             .opcode     = IBV_WR_SEND,
-            .send_flags = IBV_SEND_SIGNALED,
+            .send_flags = IBV_SEND_SIGNALED | IBV_SEND_INLINE,
             .next       = NULL
     };
     int i;
