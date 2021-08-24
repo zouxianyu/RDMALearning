@@ -631,7 +631,7 @@ int main(int argc, char *argv[])
     int                      tx_depth = 100;
     int                      iters = 100000;
     int                      use_event = 0;
-    int                      size = 0x100000;
+    int                      size = 0x1000;
     int                      sl = 0;
     int                      gidx = -1;
     char                     gid[33];
