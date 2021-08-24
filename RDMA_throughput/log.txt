@@ -1,0 +1,26 @@
+===========client============
+[rdmaworkshop11@thor001 RDMA_throughput]$ ./client 192.168.3.2
+1       3.712528        Mb/Sec
+2       7.977534        Mb/Sec
+4       15.022042       Mb/Sec
+8       29.861813       Mb/Sec
+16      70.456615       Mb/Sec
+32      119.554878      Mb/Sec
+64      234.958449      Mb/Sec
+128     441.835502      Mb/Sec
+256     1.039948        Gb/Sec
+512     1.880495        Gb/Sec
+1024    3.752112        Gb/Sec
+2048    6.817072        Gb/Sec
+4096    8.303470        Gb/Sec
+8192    9.237673        Gb/Sec
+16384   9.791632        Gb/Sec
+32768   9.990892        Gb/Sec
+65536   9.983227        Gb/Sec
+131072  9.932046        Gb/Sec
+262144  10.059425       Gb/Sec
+524288  10.033800       Gb/Sec
+1048576 10.043353       Gb/Sec
+
+===========server============
+[rdmaworkshop11@thor002 RDMA_throughput]$ ./server
