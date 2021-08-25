@@ -27,7 +27,7 @@
  *      13337.
  */
 
-// #include "hello_world_util.h"
+#include "hello_world_util.h"
 
 #include <ucp/api/ucp.h>
 
