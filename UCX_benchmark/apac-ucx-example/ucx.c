@@ -247,7 +247,7 @@ int cmpfunc(const void * a, const void * b)
     return ((*(double *)a) - (*(double *)b));
 }
 
-void bench(char * sdata, int iter, int warmup, size_t data_size)
+void bench(char *shared_ptr, char *sdata, int iter, int warmup, size_t data_size)
 {
     double start, end;
     double bw = 0.0;
@@ -259,9 +259,9 @@ void bench(char * sdata, int iter, int warmup, size_t data_size)
     /* provide a warmup between endpoints */
     for (int i = 0; i < warmup; i++) {
         if (my_pe == 0) {
-            ucp_status = ucp_put_nbx(endpoints[1], &sdata[i * data_size], data_size, remote_addresses[1] + i * data_size, rkeys[1], &req_param);
+            ucp_status = ucp_put_nbx(endpoints[1], sdata, data_size, remote_addresses[1], rkeys[1], &req_param);
         } else {
-            ucp_status = ucp_put_nbx(endpoints[0], &sdata[i * data_size], data_size, remote_addresses[0] + i * data_size, rkeys[0], &req_param);
+            ucp_status = ucp_put_nbx(endpoints[0], sdata, data_size, remote_addresses[0], rkeys[0], &req_param);
         }
         if (UCS_OK != ucp_status) {
             if (UCS_PTR_IS_ERR(ucp_status)) {
@@ -277,25 +277,59 @@ void bench(char * sdata, int iter, int warmup, size_t data_size)
 
     barrier();
     /* TODO: change this code to perform ping-pong latency */
-    if (my_pe == 0) {
-        int j = 0;
+    // if (my_pe == 0) {
+    //     int j = 0;
+    //     start = MPI_Wtime();
+    //     for (int i = 0; i < iter; i++) {
+    //         ucp_status = ucp_put_nbx(endpoints[1], &sdata[i * data_size], data_size, remote_addresses[1] + i * data_size, rkeys[1], &req_param);
+    //         if (UCS_PTR_IS_PTR(ucp_status)) {
+    //             ucp_request_free(ucp_status);
+    //         } 
+    //     }
+    //     ucp_status = ucp_worker_flush_nbx(ucp_worker, &req_param);
+    //     if (UCS_OK != ucp_status) {
+    //         if (UCS_PTR_IS_ERR(ucp_status)) {
+    //             abort();
+    //         } else {
+    //             while (UCS_INPROGRESS == ucp_request_check_status(ucp_status)) {
+    //                 ucp_worker_progress(ucp_worker);
+    //             }
+    //             ucp_request_free(ucp_status);
+    //         }
+    //     }
+    //     end = MPI_Wtime();
+
+    //     total = iter / (end - start);
+    //     bw = (1.0 * iter * data_size) / (end - start);
+
+    //     printf("%-10ld", data_size);
+    //     printf("%15.2f", ((end - start) * 1e6) / iter);
+    //     printf("%15.2f", total);
+    //     printf("%15.2f", bw / (1024 * 1024));
+    //     printf("\n");
+    // }
+
+    if(my_pe == 0){
+        // client
         start = MPI_Wtime();
         for (int i = 0; i < iter; i++) {
-            ucp_status = ucp_put_nbx(endpoints[1], &sdata[i * data_size], data_size, remote_addresses[1] + i * data_size, rkeys[1], &req_param);
+            *sdata = i;
+            ucp_status = ucp_put_nbx(endpoints[1], sdata, data_size, remote_addresses[1], rkeys[1], &req_param);
             if (UCS_PTR_IS_PTR(ucp_status)) {
                 ucp_request_free(ucp_status);
             } 
-        }
-        ucp_status = ucp_worker_flush_nbx(ucp_worker, &req_param);
-        if (UCS_OK != ucp_status) {
-            if (UCS_PTR_IS_ERR(ucp_status)) {
-                abort();
-            } else {
-                while (UCS_INPROGRESS == ucp_request_check_status(ucp_status)) {
-                    ucp_worker_progress(ucp_worker);
+            ucp_status = ucp_worker_flush_nbx(ucp_worker, &req_param);
+            if (UCS_OK != ucp_status) {
+                if (UCS_PTR_IS_ERR(ucp_status)) {
+                    abort();
+                } else {
+                    while (UCS_INPROGRESS == ucp_request_check_status(ucp_status)) {
+                        ucp_worker_progress(ucp_worker);
+                    }
+                    ucp_request_free(ucp_status);
                 }
-                ucp_request_free(ucp_status);
             }
+            while(*shared_ptr != i);
         }
         end = MPI_Wtime();
 
@@ -304,10 +338,32 @@ void bench(char * sdata, int iter, int warmup, size_t data_size)
 
         printf("%-10ld", data_size);
         printf("%15.2f", ((end - start) * 1e6) / iter);
-        printf("%15.2f", total);
-        printf("%15.2f", bw / (1024 * 1024));
+        // printf("%15.2f", total);
+        // printf("%15.2f", bw / (1024 * 1024));
         printf("\n");
+    }else{
+        // server
+        for (int i = 0; i < iter; i++) {
+            while(*shared_ptr != i);
+            *sdata = i;
+            ucp_status = ucp_put_nbx(endpoints[0], sdata, data_size, remote_addresses[0], rkeys[0], &req_param);
+            if (UCS_PTR_IS_PTR(ucp_status)) {
+                ucp_request_free(ucp_status);
+            } 
+            ucp_status = ucp_worker_flush_nbx(ucp_worker, &req_param);
+            if (UCS_OK != ucp_status) {
+                if (UCS_PTR_IS_ERR(ucp_status)) {
+                    abort();
+                } else {
+                    while (UCS_INPROGRESS == ucp_request_check_status(ucp_status)) {
+                        ucp_worker_progress(ucp_worker);
+                    }
+                    ucp_request_free(ucp_status);
+                }
+            }
+        }
     }
+
     barrier();
 }
 
@@ -321,27 +377,29 @@ int main(void)
     
     /* initialize the runtime and communication components */
     comm_init();
-    mybuff = malloc(HUGEPAGE);
-    sdata = (char *)malloc(HUGEPAGE);
+    mybuff = malloc(HUGEPAGE * 8); // 16 MB
+    sdata = (char *)malloc(HUGEPAGE * 8);
     
     barrier();
 
     /* register memory  */
-    reg_buffer(mybuff, HUGEPAGE);
+    reg_buffer(mybuff, HUGEPAGE * 8);
     
     shared_ptr = (char *) mybuff;
 
-    for (int i = 0; i < HUGEPAGE; i++) {
-        shared_ptr[i] = (char) i;
-    }
+    // for (int i = 0; i < HUGEPAGE; i++) {
+    //     shared_ptr[i] = (char) i;
+    // }
+    memset(shared_ptr, 0xff, HUGEPAGE * 8);
+
     barrier();
 
     if (my_pe == 0) {
         printf("%-10s%15s%15s%15s\n", "Size", "Latency us", "Msg/s", "BW MB/s");
     }
 
-    for (int i = 1; i <= 1024; i *= 2) {
-        bench(sdata, 100, 10, i);
+    for (int i = 1; i <= HUGEPAGE * 8; i *= 2) {
+        bench(shared_ptr, sdata, 100, 10, i);
     }
 
     comm_finalize();
