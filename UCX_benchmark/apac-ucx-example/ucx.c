@@ -297,9 +297,7 @@ void bench(char *shared_ptr, char *sdata, int iter, int warmup, size_t data_size
                     ucp_request_free(ucp_status);
                 }
             }
-            while(*shared_ptr != i){
-                // sched_yield();
-            }
+            while(*shared_ptr != i);
         }
         end = MPI_Wtime();
 
@@ -309,10 +307,7 @@ void bench(char *shared_ptr, char *sdata, int iter, int warmup, size_t data_size
     }else{
         // server
         for (int i = 0; i < iter; i++) {
-            while(*shared_ptr != i){
-                // sched_yield();
-            }
-
+            while(*shared_ptr != i);
             *sdata = i;
             ucp_status = ucp_put_nbx(endpoints[0], sdata, data_size, remote_addresses[0], rkeys[0], &req_param);
             if (UCS_PTR_IS_PTR(ucp_status)) {
