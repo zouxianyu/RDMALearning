@@ -275,7 +275,6 @@ void bench(char *shared_ptr, char *sdata, int iter, int warmup, size_t data_size
         }
     }
 
-    printf("warm up done\n");
     barrier();
     /* TODO: change this code to perform ping-pong latency */
     // if (my_pe == 0) {
@@ -330,7 +329,9 @@ void bench(char *shared_ptr, char *sdata, int iter, int warmup, size_t data_size
                     ucp_request_free(ucp_status);
                 }
             }
+            printf("client: %d sended\n");
             while(*shared_ptr != i);
+            printf("client: %d received\n");
         }
         end = MPI_Wtime();
 
@@ -346,6 +347,7 @@ void bench(char *shared_ptr, char *sdata, int iter, int warmup, size_t data_size
         // server
         for (int i = 0; i < iter; i++) {
             while(*shared_ptr != i);
+            printf("server: %d received\n");
             *sdata = i;
             ucp_status = ucp_put_nbx(endpoints[0], sdata, data_size, remote_addresses[0], rkeys[0], &req_param);
             if (UCS_PTR_IS_PTR(ucp_status)) {
@@ -362,6 +364,7 @@ void bench(char *shared_ptr, char *sdata, int iter, int warmup, size_t data_size
                     ucp_request_free(ucp_status);
                 }
             }
+            printf("server: %d sended\n");
         }
     }
 
