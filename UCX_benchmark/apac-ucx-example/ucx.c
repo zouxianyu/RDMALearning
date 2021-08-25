@@ -330,7 +330,10 @@ void bench(char *shared_ptr, char *sdata, int iter, int warmup, size_t data_size
                 }
             }
             printf("client: %d sended\n", i);
-            while(*shared_ptr != i);
+            while(*shared_ptr != i){
+                printf("client: %d waiting on %d\n", i, *shared_ptr);
+                sleep(1);
+            }
             printf("client: %d received\n", i);
         }
         end = MPI_Wtime();
@@ -346,7 +349,10 @@ void bench(char *shared_ptr, char *sdata, int iter, int warmup, size_t data_size
     }else{
         // server
         for (int i = 0; i < iter; i++) {
-            while(*shared_ptr != i);
+            while(*shared_ptr != i){
+                printf("server: %d waiting on %d\n", i, *shared_ptr);
+                sleep(1);
+            }
             printf("server: %d received\n", i);
             *sdata = i;
             ucp_status = ucp_put_nbx(endpoints[0], sdata, data_size, remote_addresses[0], rkeys[0], &req_param);
