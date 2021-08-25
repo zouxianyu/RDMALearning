@@ -340,7 +340,11 @@ void bench(char *shared_ptr, char *sdata, int iter, int warmup, size_t data_size
             // do{
             //     _mm_clflush(shared_ptr);
             // }while(*shared_ptr != i);
-            while(_mm_stream_load_si128(shared_ptr).m128i_i8[0] != i);
+
+            __m128i noncached;
+            do{
+                noncached = _mm_stream_load_si128(shared_ptr);
+            }while(noncached.m128i_i8[0] != i);
             printf("client: %d received\n", i);
         }
         end = MPI_Wtime();
@@ -363,7 +367,11 @@ void bench(char *shared_ptr, char *sdata, int iter, int warmup, size_t data_size
             // do{
             //     _mm_clflush(shared_ptr);
             // }while(*shared_ptr != i);
-            while(_mm_stream_load_si128(shared_ptr).m128i_i8[0] != i);
+
+            __m128i noncached;
+            do{
+                noncached = _mm_stream_load_si128(shared_ptr);
+            }while(noncached.m128i_i8[0] != i);
             printf("server: %d received\n", i);
             *sdata = i;
             ucp_status = ucp_put_nbx(endpoints[0], sdata, data_size, remote_addresses[0], rkeys[0], &req_param);
