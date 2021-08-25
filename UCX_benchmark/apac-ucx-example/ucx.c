@@ -304,7 +304,7 @@ void bench(char *shared_ptr, char *sdata, int iter, int warmup, size_t data_size
         end = MPI_Wtime();
 
         printf("%-10ld", data_size);
-        printf("%15.2f", ((end - start) * 1e6) / iter);
+        printf("%15.2f", ((end - start) * 1e6) / iter / 2);
         printf("\n");
     }else{
         // server
@@ -360,7 +360,7 @@ int main(void)
     barrier();
 
     if (my_pe == 0) {
-        printf("%-10s%15s%15s%15s\n", "Size", "Latency us", "Msg/s", "BW MB/s");
+        printf("%-10s%15s\n", "Size", "Latency us");
     }
 
     for (int i = 1; i <= HUGEPAGE * 8; i *= 2) {
