@@ -383,6 +383,8 @@ int main(void)
     comm_init();
     mybuff = malloc(HUGEPAGE * 8); // 16 MB
     sdata = (char *)malloc(HUGEPAGE * 8);
+    memset(mybuff, 0xff, HUGEPAGE * 8);
+    memset(sdata, 0xff, HUGEPAGE * 8);
     
     barrier();
 
@@ -394,7 +396,6 @@ int main(void)
     // for (int i = 0; i < HUGEPAGE; i++) {
     //     shared_ptr[i] = (char) i;
     // }
-    memset(shared_ptr, 0xff, HUGEPAGE * 8);
 
     barrier();
 
