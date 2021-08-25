@@ -333,7 +333,7 @@ void bench(char *shared_ptr, char *sdata, int iter, int warmup, size_t data_size
             }
             // printf("client: %d sent\n", i);
             while(*shared_ptr != i){
-                // sched_yield();
+                sched_yield();
             }
             // printf("client: %d received\n", i);
         }
@@ -351,7 +351,7 @@ void bench(char *shared_ptr, char *sdata, int iter, int warmup, size_t data_size
         // server
         for (int i = 0; i < iter; i++) {
             while(*shared_ptr != i){
-                // sched_yield();
+                sched_yield();
             }
 
             // printf("server: %d received\n", i);
