@@ -1,0 +1,10 @@
+This is a simple message rate / bandwidth benchmark using UCX
+
+Prior to compiling or running, load the following modules:
+    $ module load gcc hpcx
+
+To compile:
+    $ make
+
+To run with two nodes on the Thor system:
+    $ mpirun -np 2 --map-by node ./ucx_mr_bw

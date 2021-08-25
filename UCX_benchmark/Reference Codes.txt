@@ -1,0 +1,2 @@
+https://github.com/openucx/ucx/blob/master/examples/ucp_client_server.c
+https://github.com/wfaderhold21/apac-ucx-example
