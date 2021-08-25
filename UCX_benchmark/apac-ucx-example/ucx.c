@@ -249,7 +249,7 @@ int cmpfunc(const void * a, const void * b)
     return ((*(double *)a) - (*(double *)b));
 }
 
-void bench(char *shared_ptr, char *sdata, int iter, int warmup, size_t data_size)
+void bench(volatile char *shared_ptr, char *sdata, int iter, int warmup, size_t data_size)
 {
     double start, end;
 
