@@ -252,11 +252,9 @@ int cmpfunc(const void * a, const void * b)
 void bench(char *shared_ptr, char *sdata, int iter, int warmup, size_t data_size)
 {
     double start, end;
-    double bw = 0.0;
-    double total = 0.0;
+
     ucp_request_param_t req_param = {0};
     ucs_status_ptr_t ucp_status;
-
 
     /* provide a warmup between endpoints */
     for (int i = 0; i < warmup; i++) {
@@ -278,38 +276,6 @@ void bench(char *shared_ptr, char *sdata, int iter, int warmup, size_t data_size
     }
 
     barrier();
-    /* TODO: change this code to perform ping-pong latency */
-    // if (my_pe == 0) {
-    //     int j = 0;
-    //     start = MPI_Wtime();
-    //     for (int i = 0; i < iter; i++) {
-    //         ucp_status = ucp_put_nbx(endpoints[1], &sdata[i * data_size], data_size, remote_addresses[1] + i * data_size, rkeys[1], &req_param);
-    //         if (UCS_PTR_IS_PTR(ucp_status)) {
-    //             ucp_request_free(ucp_status);
-    //         } 
-    //     }
-    //     ucp_status = ucp_worker_flush_nbx(ucp_worker, &req_param);
-    //     if (UCS_OK != ucp_status) {
-    //         if (UCS_PTR_IS_ERR(ucp_status)) {
-    //             abort();
-    //         } else {
-    //             while (UCS_INPROGRESS == ucp_request_check_status(ucp_status)) {
-    //                 ucp_worker_progress(ucp_worker);
-    //             }
-    //             ucp_request_free(ucp_status);
-    //         }
-    //     }
-    //     end = MPI_Wtime();
-
-    //     total = iter / (end - start);
-    //     bw = (1.0 * iter * data_size) / (end - start);
-
-    //     printf("%-10ld", data_size);
-    //     printf("%15.2f", ((end - start) * 1e6) / iter);
-    //     printf("%15.2f", total);
-    //     printf("%15.2f", bw / (1024 * 1024));
-    //     printf("\n");
-    // }
 
     if(my_pe == 0){
         // client
@@ -331,21 +297,14 @@ void bench(char *shared_ptr, char *sdata, int iter, int warmup, size_t data_size
                     ucp_request_free(ucp_status);
                 }
             }
-            // printf("client: %d sent\n", i);
             while(*shared_ptr != i){
                 sched_yield();
             }
-            // printf("client: %d received\n", i);
         }
         end = MPI_Wtime();
 
-        total = iter / (end - start);
-        bw = (1.0 * iter * data_size) / (end - start);
-
         printf("%-10ld", data_size);
         printf("%15.2f", ((end - start) * 1e6) / iter);
-        // printf("%15.2f", total);
-        // printf("%15.2f", bw / (1024 * 1024));
         printf("\n");
     }else{
         // server
@@ -354,7 +313,6 @@ void bench(char *shared_ptr, char *sdata, int iter, int warmup, size_t data_size
                 sched_yield();
             }
 
-            // printf("server: %d received\n", i);
             *sdata = i;
             ucp_status = ucp_put_nbx(endpoints[0], sdata, data_size, remote_addresses[0], rkeys[0], &req_param);
             if (UCS_PTR_IS_PTR(ucp_status)) {
@@ -371,7 +329,6 @@ void bench(char *shared_ptr, char *sdata, int iter, int warmup, size_t data_size
                     ucp_request_free(ucp_status);
                 }
             }
-            // printf("server: %d sent\n", i);
         }
     }
 
@@ -399,10 +356,6 @@ int main(void)
     reg_buffer(mybuff, HUGEPAGE * 8);
     
     shared_ptr = (char *) mybuff;
-
-    // for (int i = 0; i < HUGEPAGE; i++) {
-    //     shared_ptr[i] = (char) i;
-    // }
 
     barrier();
 
