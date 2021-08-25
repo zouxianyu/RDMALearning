@@ -298,7 +298,7 @@ void bench(char *shared_ptr, char *sdata, int iter, int warmup, size_t data_size
                 }
             }
             while(*shared_ptr != i){
-                sched_yield();
+                // sched_yield();
             }
         }
         end = MPI_Wtime();
@@ -310,7 +310,7 @@ void bench(char *shared_ptr, char *sdata, int iter, int warmup, size_t data_size
         // server
         for (int i = 0; i < iter; i++) {
             while(*shared_ptr != i){
-                sched_yield();
+                // sched_yield();
             }
 
             *sdata = i;

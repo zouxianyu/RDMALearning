@@ -1,5 +1,5 @@
 CC=mpicc
-CFLAGS=-O2
+CFLAGS=-O0
 LDFLAGS=-lucp -luct -lucs -lucm 
 
 .PHONY: all clean
