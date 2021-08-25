@@ -275,6 +275,7 @@ void bench(char *shared_ptr, char *sdata, int iter, int warmup, size_t data_size
         }
     }
 
+    printf("warm up done\n");
     barrier();
     /* TODO: change this code to perform ping-pong latency */
     // if (my_pe == 0) {
