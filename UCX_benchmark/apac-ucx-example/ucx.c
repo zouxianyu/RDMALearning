@@ -331,21 +331,11 @@ void bench(char *shared_ptr, char *sdata, int iter, int warmup, size_t data_size
                     ucp_request_free(ucp_status);
                 }
             }
-            printf("client: %d sent\n", i);
+            // printf("client: %d sent\n", i);
             while(*shared_ptr != i){
-                // printf("client: %d waiting on %d\n", i, *shared_ptr);
-                // sleep(1);
-                sched_yield();
+                // sched_yield();
             }
-            // do{
-            //     _mm_clflush(shared_ptr);
-            // }while(*shared_ptr != i);
-
-            // __m128i noncached;
-            // do{
-            //     noncached = _mm_stream_load_si128(shared_ptr);
-            // }while(*(char *)&noncached != i);
-            printf("client: %d received\n", i);
+            // printf("client: %d received\n", i);
         }
         end = MPI_Wtime();
 
@@ -361,15 +351,10 @@ void bench(char *shared_ptr, char *sdata, int iter, int warmup, size_t data_size
         // server
         for (int i = 0; i < iter; i++) {
             while(*shared_ptr != i){
-                // printf("server: %d waiting on %d\n", i, *shared_ptr);
-                // sleep(1);
-                sched_yield();
+                // sched_yield();
             }
-            // do{
-            //     _mm_clflush(shared_ptr);
-            // }while(*shared_ptr != i);
 
-            printf("server: %d received\n", i);
+            // printf("server: %d received\n", i);
             *sdata = i;
             ucp_status = ucp_put_nbx(endpoints[0], sdata, data_size, remote_addresses[0], rkeys[0], &req_param);
             if (UCS_PTR_IS_PTR(ucp_status)) {
@@ -386,7 +371,7 @@ void bench(char *shared_ptr, char *sdata, int iter, int warmup, size_t data_size
                     ucp_request_free(ucp_status);
                 }
             }
-            printf("server: %d sent\n", i);
+            // printf("server: %d sent\n", i);
         }
     }
 
